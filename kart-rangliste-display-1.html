@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kart Basel Challenge Event – Live Rangliste</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0a0a0a;
+    background-image:
+      linear-gradient(135deg, #111 25%, transparent 25%),
+      linear-gradient(225deg, #111 25%, transparent 25%),
+      linear-gradient(45deg, #111 25%, transparent 25%),
+      linear-gradient(315deg, #111 25%, #0a0a0a 25%);
+    background-position: 20px 0, 20px 0, 0 0, 0 0;
+    background-size: 40px 40px;
+    background-repeat: repeat;
+    color: #f5f5f5;
+    margin: 0;
+    padding: 16px 20px;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .logo-flag { font-size: 4.2vw; line-height: 1; }
+  .logo-text {
+    font-size: 4.2vw;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 1px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .logo-text span { color: #e10600; }
+  .event-title {
+    text-align: center;
+    color: #ccc;
+    font-size: 1.8vw;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+  }
+  .flag-stripe {
+    height: 8px;
+    max-width: 1400px;
+    margin: 0 auto 10px;
+    background: repeating-linear-gradient(45deg, #fff 0 10px, #111 10px 20px);
+    border-radius: 4px;
+    opacity: 0.9;
+  }
+  .subtitle {
+    text-align: center;
+    color: #bbb;
+    margin-bottom: 16px;
+    font-size: 1.1vw;
+  }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .fullscreen-btn {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 50;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    background: rgba(10,10,10,0.7);
+    color: #777;
+    font-size: 15px;
+    cursor: pointer;
+    opacity: 0.5;
+  }
+  .fullscreen-btn:hover { opacity: 1; color: #fff; }
+
+  .list { --row-h: 60px; }
+  .list.two-col {
+    column-count: 2;
+    column-gap: 24px;
+  }
+  .list.two-col .entry {
+    break-inside: avoid;
+    margin-bottom: calc(var(--row-h) * 0.15);
+  }
+  .list.two-col .divider-line { column-span: all; }
+  .list:not(.two-col) {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--row-h) * 0.15);
+  }
+
+  .entry {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: calc(var(--row-h) * 0.2);
+    padding: calc(var(--row-h) * 0.15) calc(var(--row-h) * 0.24);
+    border-radius: calc(var(--row-h) * 0.16);
+    background: #161616;
+    border-left: 5px solid #333;
+    min-width: 0;
+  }
+  .entry.safe {
+    border-left-color: #22c55e;
+    background: linear-gradient(90deg, rgba(34,197,94,0.15), #161616 35%);
+  }
+  .entry.warn {
+    border-left-color: #ffcc00;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,204,0,0.18) 0 10px, rgba(255,204,0,0.05) 10px 20px),
+      linear-gradient(90deg, rgba(255,204,0,0.1), #161616 45%);
+    animation: risk-flash 1.2s ease-in-out infinite;
+  }
+  @keyframes risk-flash {
+    0%, 100% { border-left-color: #ffcc00; box-shadow: 0 0 0 rgba(255,204,0,0); }
+    50% { border-left-color: #fff2a8; box-shadow: 0 0 16px rgba(255,204,0,0.45); }
+  }
+  .entry.elim {
+    border-left-color: #e10600;
+    background: linear-gradient(90deg, rgba(225,6,0,0.15), #161616 35%);
+    animation: elim-pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes elim-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(225,6,0,0); }
+    50% { box-shadow: 0 0 14px rgba(225,6,0,0.35); }
+  }
+  .entry.p1 {
+    border-left-color: #ffcc00;
+    box-shadow: 0 0 16px rgba(255,204,0,0.25);
+  }
+  .trophy { margin-right: 2px; }
+  .rank {
+    font-size: calc(var(--row-h) * 0.5);
+    font-weight: 800;
+    width: calc(var(--row-h) * 1.05);
+    flex-shrink: 0;
+    text-align: center;
+    color: #4ade80;
+  }
+  .entry.warn .rank { color: #ffcc00; }
+  .entry.elim .rank { color: #ff5c56; }
+  .name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: calc(var(--row-h) * 0.34);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .time {
+    font-variant-numeric: tabular-nums;
+    font-size: calc(var(--row-h) * 0.3);
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .time.no-time { color: #666; font-weight: 400; }
+
+  .divider-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: calc(var(--row-h) * 0.08) 0;
+    color: #999;
+    font-size: calc(var(--row-h) * 0.24);
+    font-weight: 800;
+    letter-spacing: 1.5px;
+  }
+  .divider-line::before, .divider-line::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, #555 0 6px, #222 6px 12px);
+    opacity: 0.7;
+  }
+
+  .empty {
+    text-align: center;
+    color: #666;
+    padding: 60px 0;
+    font-size: 1.4vw;
+  }
+</style>
+</head>
+<body>
+
+<button class="fullscreen-btn" id="fsBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
+
+<div class="logo-wrap">
+  <div class="logo-flag">🏁</div>
+  <div class="logo-text">KART<span>BASEL</span></div>
+</div>
+<div class="event-title">CHALLENGE EVENT RANGLISTE</div>
+<div class="flag-stripe"></div>
+<div class="subtitle">Grün = qualifiziert &nbsp;•&nbsp; Gelb = Cutoff / at risk &nbsp;•&nbsp; Rot = eliminiert</div>
+
+<div class="container">
+  <div class="list" id="list"></div>
+  <div class="empty" id="emptyMsg">Warte auf Daten von der Admin-Ansicht…</div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdo5UMvb5djezX6tF_78OlnwMrNl270lc",
+    authDomain: "kart-basel.firebaseapp.com",
+    projectId: "kart-basel",
+    storageBucket: "kart-basel.firebasestorage.app",
+    messagingSenderId: "633928437253",
+    appId: "1:633928437253:web:4c77da7b44e7547478d66c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const docRef = doc(db, "kartBasel", "rangliste");
+
+  let people = [];
+
+  function toggleFullscreen() {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  function formatTime(sec) {
+    if (sec === null || sec === undefined) return '–';
+    const min = Math.floor(sec / 60);
+    const rest = (sec - min * 60);
+    if (min > 0) {
+      return min + ':' + rest.toFixed(3).padStart(6, '0');
+    }
+    return rest.toFixed(3) + 's';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  onSnapshot(docRef, (snap) => {
+    people = snap.exists() ? (snap.data().people || []) : [];
+    render();
+  }, (err) => {
+    console.error('Firestore-Fehler:', err);
+  });
+
+  function render() {
+    const list = document.getElementById('list');
+    const emptyMsg = document.getElementById('emptyMsg');
+    list.innerHTML = '';
+
+    if (!people.length) {
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    emptyMsg.style.display = 'none';
+
+    people.forEach((p, i) => {
+      if (i === 8) {
+        const div = document.createElement('div');
+        div.className = 'divider-line';
+        div.textContent = 'ELIMINATION ZONE';
+        list.appendChild(div);
+      }
+
+      // Position: 1-7 = grün (qualifiziert), 8 = gelb (at risk), ab 9 = rot (eliminiert)
+      const zone = i < 7 ? 'safe' : (i === 7 ? 'warn' : 'elim');
+      const isP1 = i === 0 && p.timeSec !== null;
+      const timeClass = (p.timeSec === null || p.timeSec === undefined) ? 'time no-time' : 'time';
+
+      const entry = document.createElement('div');
+      entry.className = 'entry ' + zone + (isP1 ? ' p1' : '');
+      entry.innerHTML = `
+        <div class="rank">${isP1 ? '<span class="trophy">🏆</span>' : ''}${i + 1}</div>
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="${timeClass}">${formatTime(p.timeSec)}</div>
+      `;
+      list.appendChild(entry);
+    });
+
+    fitRows();
+  }
+
+  function fitRows() {
+    const list = document.getElementById('list');
+    if (!people.length) return;
+
+    const totalRows = people.length + (people.length > 8 ? 1 : 0);
+    const twoCol = people.length > 10;
+    list.classList.toggle('two-col', twoCol);
+
+    const rows = twoCol ? Math.ceil(totalRows / 2) : totalRows;
+    const top = list.getBoundingClientRect().top;
+    const available = window.innerHeight - top - 16;
+
+    // Auf schmalen Bildschirmen (Handy) darf die Zeile nicht zu breit/gross werden,
+    // sonst rutscht die Zeit aus dem sichtbaren Bereich raus.
+    const maxRowH = window.innerWidth < 700 ? 64 : 140;
+
+    let rowH = available / rows;
+    rowH = Math.max(24, Math.min(maxRowH, rowH));
+    list.style.setProperty('--row-h', rowH + 'px');
+  }
+
+  window.addEventListener('resize', fitRows);
+</script>
+
+</body>
+</html>
